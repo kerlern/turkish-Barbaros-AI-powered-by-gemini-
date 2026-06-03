@@ -1,0 +1,124 @@
+# Kurulum Videoları
+
+- [Mac Kurulum Videosu](https://youtu.be/6D136kF5dbs)
+- [Windows Kurulum Videosu](https://youtu.be/l8Ji8vLGJX4)
+- [Hata Alma ve Geliştirme](https://youtube.com/shorts/k19F0_xqfM4?feature=share)
+
+╔══════════════════════════════════════════════════════════╗
+║           B.A.R.B.A.R.O.S-  Windows — Kurulum Rehberi        ║
+╚══════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 1 — Python 3.12 Kur
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tarayıcıdan şu adrese git:
+  https://www.python.org/downloads/release/python-3128/
+
+Sayfanın en altında "Windows installer (64-bit)" linkine tıkla.
+
+Kurulum sırasında:
+  → En alttaki "Add python.exe to PATH" kutusunu İŞARETLE
+  → "Install Now" a tıkla
+
+Kontrol etmek için terminale yaz:
+  py -3.12 --version
+  (Python 3.12.x çıkıyorsa tamam)
+
+NOT: Python 3.13 veya 3.14 varsa silmene gerek yok,
+     ikisi bir arada çalışabilir.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 2 — VS Code Kur
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tarayıcıdan şu adrese git:
+  https://code.visualstudio.com
+
+"Download for Windows" butonuna tıkla, kurulumu çalıştır.
+
+Kurulum bitince VS Code'u aç:
+  → Sol taraftaki Extensions ikonuna tıkla (Ctrl+Shift+X)
+  → "Python" yaz
+  → Microsoft'un Python eklentisini kur
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 3 — Projeyi VS Code'da Aç
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VS Code'da:
+  File → Open Folder → jarvis-windows klasörünü seç
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 4 — Paketleri Kur
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VS Code'da terminali aç (Ctrl+J) ve şunu yapıştır:
+
+1:
+python -m pip install google-genai psutil Pillow requests pyperclip mss SpeechRecognition
+İlk kod çaluşmazsa alternatif versiyonu: py -3.12 -m pip install google-genai psutil Pillow requests pyperclip mss SpeechRecognition PyAudio
+
+Kurulum birkaç dakika sürebilir, bekle.
+
+2:
+python -m pip install pipwin
+
+3:
+python -m pipwin install pyaudio
+3. Kod hata verirse bir sonraki aşamaya geçip çalıştırmayı deneyin.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 5 — API Anahtarını Al
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ücretsiz Gemini API anahtarı almak için:
+  https://aistudio.google.com → Get API Key → Create API Key
+
+API anahtarını kodu çalıştırdıktan sonra gelen kısma yazacaksın
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 6 — Çalıştır
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Terminale şunu yaz:
+  py -3.12 main.py
+
+Veya F5 tuşuna bas (otomatik Python 3.12 ile çalışır).
+
+JARVIS penceresi açılırsa kurulum tamamdır!
+
+API anahtarını girip kaydet!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SIK KARŞILAŞILAN HATALAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"pip is not recognized"
+  → pip yerine: python -m pip kullan
+
+"No module named 'pyaudio'"
+  → py -3.12 ile çalıştır, py -3.14 ile değil
+
+PyAudio kurulumu hata verdi
+  → Python 3.12 kullandığından emin ol (py -3.12 --version)
+  → Sonra: py -3.12 -m pip install PyAudio
+
+"No module named 'xxx'"
+  → py -3.12 -m pip install xxx
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÖZELLİKLER — Windows'ta Ne Çalışır?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Sesli konuşma (Gemini AI)
+✅ Uygulama açma
+✅ Hava durumu
+✅ Sistem bilgisi (CPU, RAM, disk, pil)
+✅ Browser kontrolü
+✅ YouTube arama ve oynatma
+✅ Spotify
+✅ WhatsApp (Desktop + Web)
+✅ Ekran analizi
+✅ Çift alkış ile uyanma
+✅dosyaların yerlerini değiştirebilir (dosyaları kesinlikle silmez)
+⚠️  Takvim → Google Calendar açılır
+⚠️  Hatırlatıcılar → Microsoft To-Do açılır
+⚠️  Apple Music → YouTube'a yönlendirir
+

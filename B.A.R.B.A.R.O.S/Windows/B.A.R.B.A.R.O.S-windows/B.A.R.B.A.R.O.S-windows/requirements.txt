@@ -1,0 +1,14 @@
+# B.A.R.B.A.R.O.S Windows — Gerekli paketler
+google-genai
+SpeechRecognition
+pyaudio
+psutil
+Pillow
+requests
+pyperclip
+mss
+# RAG (Retrieval-Augmented Generation) bağımlılıkları
+numpy
+faiss-cpu
+PyPDF2
+python-docx
