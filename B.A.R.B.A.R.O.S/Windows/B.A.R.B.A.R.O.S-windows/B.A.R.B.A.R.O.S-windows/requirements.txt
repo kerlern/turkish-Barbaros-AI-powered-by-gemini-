@@ -12,3 +12,4 @@ numpy
 faiss-cpu
 PyPDF2
 python-docx
+win11toast

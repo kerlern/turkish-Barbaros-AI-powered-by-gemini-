@@ -25,7 +25,7 @@ from actions.sys_info  import sys_info
 from actions.calendar import get_calendar_events, add_calendar_event, delete_calendar_event
 from actions.reminders import get_reminders, add_reminder
 from actions.browser   import browser_control
-from actions.shell     import shell_run
+from actions.shell     import system_action
 from actions.whatsapp  import send_whatsapp_message, save_whatsapp_contact
 from actions.media     import play_media
 from actions.weather   import get_weather_summary
@@ -33,6 +33,11 @@ from actions.screen_vision import analyze_screen
 from actions.youtube_stats import get_youtube_channel_report
 from actions.local_rag import ingest_documents, query_documents, list_indexed_sources, clear_index as rag_clear_index
 from wakeup_listener import WakeGestureListener
+
+try:
+    from win11toast import toast
+except ImportError:
+    toast = None
 
 # ── Paths ───────────────────────────────────────────────────────────────────
 BASE_DIR        = Path(__file__).resolve().parent
@@ -281,17 +286,16 @@ TOOL_DECLARATIONS = [
         }
     },
     {
-        "name": "shell_run",
-        "description": "Windows komut satırı komutu çalıştırır. Dosya işlemleri, sistem yönetimi.",
+        "name": "system_action",
+        "description": "Güvenli sistem ve dosya işlemleri yapar. (dir, copy, tasklist vb.)",
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "command": {
-                    "type": "STRING",
-                    "description": "Çalıştırılacak komut"
-                }
+                "action": { "type": "STRING", "description": "list_dir | make_dir | read_file | copy | move | delete | list_tasks | ping" },
+                "target": { "type": "STRING", "description": "Hedef dosya yolu, klasör, görev adı veya IP adresi" },
+                "destination": { "type": "STRING", "description": "Kopyalama/Taşıma için varış klasörü/dosyası" }
             },
-            "required": ["command"]
+            "required": ["action"]
         }
     },
     {
@@ -725,8 +729,9 @@ class JarvisLive:
             parts.append(mem_str + "\n\n")
         parts.append(sys_p)
 
+        # ── Live API Ses ve Yanıt Konfigürasyonu ───────────────────────────────────
         return types.LiveConnectConfig(
-            response_modalities=["AUDIO"],
+            response_modalities=["AUDIO"], # Modelin size sesle yanıt vermesini sağlar
             output_audio_transcription={},
             input_audio_transcription={},
             system_instruction="\n".join(parts),
@@ -734,7 +739,8 @@ class JarvisLive:
             speech_config=types.SpeechConfig(
                 voice_config=types.VoiceConfig(
                     prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                        voice_name=str(get_app_config_value("voice", "Charon") or "Charon")
+                        # Eğer ayarlardan çekmek istersen: str(get_app_config_value("voice", "Charon") or "Charon")
+                        voice_name="Orus" #<── İSTEDİĞİNİZ SESİ BURAYA YAZIN (Örn: Puck, Charon, Kore, Fenrir)
                     )
                 )
             ),
@@ -855,10 +861,10 @@ class JarvisLive:
                     ))
                 result = r or "Tamam."
 
-            elif name == "shell_run":
+            elif name == "system_action":
                 r = await loop.run_in_executor(
-                    None, lambda: shell_run(args.get("command", "")))
-                result = r or "Komut çalıştırıldı."
+                    None, lambda: system_action(args.get("action", ""), args.get("target", ""), args.get("destination", "")))
+                result = r or "İşlem başarıyla çalıştı."
 
             elif name == "play_media":
                 r = await loop.run_in_executor(
@@ -1171,6 +1177,23 @@ class JarvisLive:
                 consecutive_quick_fails = 0
                 raise  # TaskGroup yakalar, yeniden bağlanma tetiklenir
 
+    async def _midnight_checker(self):
+        """Her dakika saati kontrol eder, 00:00 ise bildirim atar."""
+        last_triggered_date = None
+        while True:
+            now = datetime.datetime.now()
+            if now.hour == 0 and now.minute == 0:
+                if last_triggered_date != now.date():
+                    if toast is not None:
+                        try:
+                            toast("B.A.R.B.A.R.O.S", "Gece geç oldu yatacak mısın?")
+                        except Exception as e:
+                            print(f"[B.A.R.B.A.R.O.S] ❌ Bildirim hatası: {e}")
+                    else:
+                        print("[B.A.R.B.A.R.O.S] ⚠️ win11toast yüklü değil. Bildirim atılamadı.")
+                    last_triggered_date = now.date()
+            await asyncio.sleep(30)
+
     async def run(self):
         client = genai.Client(
             api_key=get_api_key(),
@@ -1207,6 +1230,7 @@ class JarvisLive:
                     tg.create_task(self._receive_audio())
                     tg.create_task(self._play_audio())
                     tg.create_task(self._keepalive())
+                    tg.create_task(self._midnight_checker())
 
             except Exception as e:
                 err_str = str(e)
