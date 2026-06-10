@@ -11,6 +11,7 @@ import threading
 import traceback
 import os
 import re
+import random
 from pathlib import Path
 
 import pyaudio  # type: ignore[reportMissingModuleSource]
@@ -23,7 +24,7 @@ from memory.memory_manager import load_memory, update_memory, delete_memory, for
 from actions.open_app import open_app
 from actions.sys_info  import sys_info
 from actions.calendar import get_calendar_events, add_calendar_event, delete_calendar_event
-from actions.reminders import get_reminders, add_reminder
+from actions.reminders import get_reminders, add_reminder, _load_reminders, mark_reminder_notified
 from actions.browser   import browser_control
 from actions.shell     import system_action
 from actions.whatsapp  import send_whatsapp_message, save_whatsapp_contact
@@ -1186,19 +1187,61 @@ class JarvisLive:
                 if last_triggered_date != now.date():
                     if toast is not None:
                         try:
-                            toast("B.A.R.B.A.R.O.S", "Gece geç oldu yatacak mısın?")
+                            messages = [
+                                "Gece geç oldu yatacak mısın?",
+                                "Yarın da bir gün kral.",
+                                "Uyku da önemli bir teknoloji.",
+                                "Sabaha kadar debug yapınca buglar gitmiyor haberin olsun.",
+                                "Siber güvenlikçi olacaksın diye RAM gibi çalışmana gerek yok."
+                            ]
+                            toast("B.A.R.B.A.R.O.S", random.choice(messages))
                         except Exception as e:
                             print(f"[B.A.R.B.A.R.O.S] ❌ Bildirim hatası: {e}")
-                    else:
-                        print("[B.A.R.B.A.R.O.S] ⚠️ win11toast yüklü değil. Bildirim atılamadı.")
                     last_triggered_date = now.date()
             await asyncio.sleep(30)
+
+    async def _reminder_checker(self):
+        """Süresi dolan anımsatıcıları kontrol edip bildirim atar."""
+        while True:
+            try:
+                reminders = _load_reminders()
+                now = datetime.datetime.now()
+                for r in reminders:
+                    if not r.get("notified", False):
+                        due_iso = r.get("due_iso", "")
+                        if due_iso:
+                            try:
+                                dt = datetime.datetime.fromisoformat(due_iso.replace('Z', '+00:00'))
+                                if dt.tzinfo is not None:
+                                    now_utc = datetime.datetime.now(datetime.timezone.utc)
+                                    is_due = dt <= now_utc
+                                else:
+                                    is_due = dt <= now
+                                    
+                                if is_due:
+                                    title = r.get("title", "Hatırlatıcı")
+                                    notes = r.get("notes", "")
+                                    body = "Hatırlatma zamanı geldi!"
+                                    if notes:
+                                        body += f"\nNot: {notes}"
+                                        
+                                    if toast is not None:
+                                        toast("B.A.R.B.A.R.O.S Anımsatıcı", title + "\n" + body)
+                                    
+                                    mark_reminder_notified(r.get("id"))
+                            except Exception as e:
+                                print(f"[B.A.R.B.A.R.O.S] ❌ Anımsatıcı parse hatası ({r.get('title')}): {e}")
+            except Exception as e:
+                print(f"[B.A.R.B.A.R.O.S] ❌ _reminder_checker hatası: {e}")
+            await asyncio.sleep(15)
 
     async def run(self):
         client = genai.Client(
             api_key=get_api_key(),
             http_options={"api_version": "v1alpha"}
         )
+
+        asyncio.create_task(self._midnight_checker())
 
         while True:
             # Duraklatılmışsa bağlanma, bekle
@@ -1231,6 +1274,7 @@ class JarvisLive:
                     tg.create_task(self._play_audio())
                     tg.create_task(self._keepalive())
                     tg.create_task(self._midnight_checker())
+                    tg.create_task(self._reminder_checker())
 
             except Exception as e:
                 err_str = str(e)
